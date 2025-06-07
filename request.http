@@ -1,0 +1,20 @@
+### Missing URL in the request
+POST http://localhost:8080/analyzer
+Content-Type: application/json
+
+### Empty URL in the request
+POST http://localhost:8080/analyzer
+Content-Type: application/json
+
+{
+"webpageUrl": " "
+}
+### Valid URL in the request
+POST http://localhost:8080/analyzer
+Content-Type: application/json
+
+{
+"webpageUrl": "https://facebook.com"
+}
+
+###

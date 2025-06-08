@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var HTTPGet = http.Get
+
 func WebPageAnalyzerHandler(c *gin.Context) {
 	var request PageAnalysisRequest
 
@@ -26,7 +28,7 @@ func WebPageAnalyzerHandler(c *gin.Context) {
 		return
 	}
 
-	resp, err := http.Get(request.WebpageUrl)
+	resp, err := HTTPGet(request.WebpageUrl)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to fetch the webpage: " + err.Error(),

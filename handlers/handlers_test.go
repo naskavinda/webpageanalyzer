@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestWebPageAnalyzerHandler_InvalidJSON(t *testing.T) {
+func TestWebPageAnalyzerHandler_ValidJSON(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	HTTPGet = func(url string) (*http.Response, error) {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -12,12 +13,16 @@ import (
 	"testing"
 )
 
+var originalHTTPGet = HTTPGet
+
 func TestWebPageAnalyzerHandler_ValidJSON(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	HTTPGet = mockHTTPGetSuccess
-
 	req := newTestRequest(`{"webpageUrl": "  https://example.com  "}`)
+
+	response := mockHTTPGetSuccess()
+	cleanUp := setupMockHTTP(response, nil)
+	defer cleanUp()
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -28,8 +33,8 @@ func TestWebPageAnalyzerHandler_ValidJSON(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	resp := decodeJSONResponse(t, w.Body)
-	assert.Contains(t, "https://example.com", resp["url"])
-	assert.Contains(t, "<html><body>Test Page</body></html>", resp["content"])
+	assert.Equal(t, "https://example.com", resp["url"])
+	assert.Equal(t, "<html><body>Test Page</body></html>", resp["content"])
 }
 
 func TestWebPageAnalyzerHandler_EmptyURL(t *testing.T) {
@@ -46,7 +51,7 @@ func TestWebPageAnalyzerHandler_EmptyURL(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	resp := decodeJSONResponse(t, w.Body)
-	assert.Contains(t, "URL cannot be empty", resp["error"])
+	assert.Equal(t, "URL cannot be empty", resp["error"])
 }
 
 func TestWebPageAnalyzerHandler_InvalidJSON(t *testing.T) {
@@ -63,13 +68,16 @@ func TestWebPageAnalyzerHandler_InvalidJSON(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	resp := decodeJSONResponse(t, w.Body)
-	assert.Contains(t, "Invalid request format or missing webpageUrl", resp["error"])
+	assert.Equal(t, "Invalid request format or missing webpageUrl", resp["error"])
 }
 
 func TestWebPageAnalyzerHandler_InvalidURL(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	req := newTestRequest(`{"webpageUrl": "invalid-url"}`)
+
+	cleanUp := setupMockHTTP(nil, errors.New("Get \"invalid-url\": unsupported protocol scheme \"\""))
+	defer cleanUp()
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -99,10 +107,24 @@ func newTestRequest(jsonBody string) *http.Request {
 	return req
 }
 
-func mockHTTPGetSuccess(string) (*http.Response, error) {
-	body := io.NopCloser(strings.NewReader("<html><body>Test Page</body></html>"))
+func mockHTTPGetSuccess() *http.Response {
+	return newHTTPResponse("<html><body>Test Page</body></html>", http.StatusOK)
+}
+
+func newHTTPResponse(response string, statusCode int) *http.Response {
+	body := io.NopCloser(strings.NewReader(response))
 	return &http.Response{
-		StatusCode: http.StatusOK,
+		StatusCode: statusCode,
 		Body:       body,
-	}, nil
+	}
+}
+
+func setupMockHTTP(mockResponse *http.Response, mockError error) func() {
+	HTTPGet = func(url string) (*http.Response, error) {
+		return mockResponse, mockError
+	}
+
+	return func() {
+		HTTPGet = originalHTTPGet
+	}
 }

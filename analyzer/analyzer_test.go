@@ -4,9 +4,13 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"io"
+	"net/http"
 	"strings"
 	"testing"
 )
+
+var originalHTTPGet = HTTPGet
 
 func TestAnalyze_ValidPageURL(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -68,6 +72,23 @@ func TestAnalyze_URLWithTrailingSpaces(t *testing.T) {
 	assert.Equal(t, "https://google.com", analyze.URL)
 }
 
+func TestAnalyze_ShouldGiveValidHTMLVersion(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	pageUrl := "https://example.com/test-page"
+
+	response := mockHTTPGetSuccess()
+	cleanUp := setupMockHTTP(response, nil)
+
+	analyze, err := Analyze(pageUrl)
+
+	defer cleanUp()
+
+	assert.NoError(t, err)
+	assert.Equal(t, pageUrl, analyze.URL)
+	assert.Equal(t, "HTML5", analyze.HTMLVersion)
+}
+
 func TestDetectHTMLVersion(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -120,4 +141,26 @@ func isHtmlVersionCorrect(t *testing.T, htmlContent string, expectedVersion stri
 
 	version := detectHTMLVersion(doc)
 	assert.Equal(t, expectedVersion, version)
+}
+
+func mockHTTPGetSuccess() *http.Response {
+	return newHTTPResponse("<!DOCTYPE html><body>Test Page</body></html>", http.StatusOK)
+}
+
+func newHTTPResponse(response string, statusCode int) *http.Response {
+	body := io.NopCloser(strings.NewReader(response))
+	return &http.Response{
+		StatusCode: statusCode,
+		Body:       body,
+	}
+}
+
+func setupMockHTTP(mockResponse *http.Response, mockError error) func() {
+	HTTPGet = func(url string) (*http.Response, error) {
+		return mockResponse, mockError
+	}
+
+	return func() {
+		HTTPGet = originalHTTPGet
+	}
 }

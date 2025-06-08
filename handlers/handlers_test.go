@@ -66,6 +66,23 @@ func TestWebPageAnalyzerHandler_InvalidJSON(t *testing.T) {
 	assert.Contains(t, "Invalid request format or missing webpageUrl", resp["error"])
 }
 
+func TestWebPageAnalyzerHandler_InvalidURL(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	req := newTestRequest(`{"webpageUrl": "invalid-url"}`)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	WebPageAnalyzerHandler(c)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+	resp := decodeJSONResponse(t, w.Body)
+	assert.Equal(t, "Failed to fetch the webpage: Get \"invalid-url\": unsupported protocol scheme \"\"", resp["error"])
+}
+
 func decodeJSONResponse(t *testing.T, body *bytes.Buffer) map[string]string {
 	t.Helper()
 	var data map[string]string

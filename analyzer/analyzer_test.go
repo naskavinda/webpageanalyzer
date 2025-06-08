@@ -1,8 +1,10 @@
 package analyzer
 
 import (
+	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
@@ -64,4 +66,58 @@ func TestAnalyze_URLWithTrailingSpaces(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "https://google.com", analyze.URL)
+}
+
+func TestDetectHTMLVersion(t *testing.T) {
+	tests := []struct {
+		name     string
+		html     string
+		expected string
+	}{
+		{
+			name:     "HTML5",
+			html:     "<!DOCTYPE html><html><head></head><body></body></html>",
+			expected: "HTML5",
+		},
+		{
+			name:     "HTML 4.01",
+			html:     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"><html><body></body></html>",
+			expected: "HTML 4.01",
+		},
+		{
+			name:     "XHTML",
+			html:     "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"><html><body></body></html>",
+			expected: "XHTML 1.0",
+		},
+		{
+			name:     "XHTML",
+			html:     "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1 Transitional//EN\"><html><body></body></html>",
+			expected: "XHTML 1.1",
+		},
+		{
+			name:     "Unknown",
+			html:     "<!DOCTYPE something-custom><html><body></body></html>",
+			expected: "Unknown",
+		},
+		{
+			name:     "No DOCTYPE",
+			html:     "<html><body>No doctype</body></html>",
+			expected: "Unknown",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gin.SetMode(gin.TestMode)
+			isHtmlVersionCorrect(t, tt.html, tt.expected)
+		})
+	}
+}
+
+func isHtmlVersionCorrect(t *testing.T, htmlContent string, expectedVersion string) {
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlContent))
+	assert.NoError(t, err)
+
+	version := detectHTMLVersion(doc)
+	assert.Equal(t, expectedVersion, version)
 }

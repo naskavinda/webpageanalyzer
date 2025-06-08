@@ -6,6 +6,7 @@ import (
 	. "github.com/naskavinda/webpageanalyzer/models"
 	"github.com/naskavinda/webpageanalyzer/validaters"
 	"net/http"
+	"strings"
 )
 
 var HTTPGet = http.Get
@@ -35,13 +36,37 @@ func Analyze(pageUrl string) (PageAnalysisResponse, error) {
 		return PageAnalysisResponse{}, fmt.Errorf("failed to read the webpage content: %v", err.Error())
 	}
 
-	detectHTMLVersion(doc)
+	result := PageAnalysisResponse{
+		URL:           pageUrl,
+		HeadingCounts: make(map[string]int),
+	}
 
-	return PageAnalysisResponse{
-		URL: pageUrl,
-	}, nil
+	result.HTMLVersion = detectHTMLVersion(doc)
+
+	return result, nil
 }
 
-func detectHTMLVersion(doc *goquery.Document) {
+func detectHTMLVersion(doc *goquery.Document) string {
+	html, err := doc.Html()
+	if err != nil {
+		return "Unknown"
+	}
 
+	lowerCaseHTML := strings.ToLower(html)
+	if strings.Contains(lowerCaseHTML, "<!doctype html>") {
+		return "HTML5"
+	}
+
+	if strings.Contains(lowerCaseHTML, "html 4.01") {
+		return "HTML 4.01"
+	}
+
+	if strings.Contains(lowerCaseHTML, "xhtml 1.0") {
+		return "XHTML 1.0"
+	}
+	if strings.Contains(lowerCaseHTML, "xhtml 1.1") {
+		return "XHTML 1.1"
+	}
+
+	return "Unknown"
 }

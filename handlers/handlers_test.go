@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -76,19 +75,16 @@ func TestWebPageAnalyzerHandler_InvalidURL(t *testing.T) {
 
 	req := newTestRequest(`{"webpageUrl": "invalid-url"}`)
 
-	cleanUp := setupMockHTTP(nil, errors.New("Get \"invalid-url\": unsupported protocol scheme \"\""))
-	defer cleanUp()
-
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request = req
 
 	WebPageAnalyzerHandler(c)
 
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	resp := decodeJSONResponse(t, w.Body)
-	assert.Equal(t, "Failed to fetch the webpage: Get \"invalid-url\": unsupported protocol scheme \"\"", resp["error"])
+	assert.Equal(t, "Invalid URL format", resp["error"])
 }
 
 func decodeJSONResponse(t *testing.T, body *bytes.Buffer) map[string]string {

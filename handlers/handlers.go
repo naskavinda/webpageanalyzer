@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	. "github.com/naskavinda/webpageanalyzer/models"
+	"github.com/naskavinda/webpageanalyzer/validaters"
 	"io"
 	"net/http"
 	"strings"
@@ -24,6 +25,16 @@ func WebPageAnalyzerHandler(c *gin.Context) {
 	if request.WebpageUrl == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "URL cannot be empty",
+		})
+		return
+	}
+	var isValidURL = false
+
+	request.WebpageUrl, isValidURL = validaters.IsValidURL(request.WebpageUrl)
+
+	if !isValidURL {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid URL format",
 		})
 		return
 	}

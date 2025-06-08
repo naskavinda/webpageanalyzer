@@ -32,6 +32,23 @@ func TestWebPageAnalyzerHandler_ValidJSON(t *testing.T) {
 	assert.Contains(t, "<html><body>Test Page</body></html>", resp["content"])
 }
 
+func TestWebPageAnalyzerHandler_EmptyURL(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	req := newTestRequest(`{"webpageUrl": "  "}`)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	WebPageAnalyzerHandler(c)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	resp := decodeJSONResponse(t, w.Body)
+	assert.Contains(t, "URL cannot be empty", resp["error"])
+}
+
 func decodeJSONResponse(t *testing.T, body *bytes.Buffer) map[string]string {
 	t.Helper()
 	var data map[string]string

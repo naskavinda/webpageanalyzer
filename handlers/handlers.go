@@ -6,7 +6,6 @@ import (
 	"github.com/naskavinda/webpageanalyzer/validaters"
 	"io"
 	"net/http"
-	"strings"
 )
 
 var HTTPGet = http.Get
@@ -21,13 +20,6 @@ func WebPageAnalyzerHandler(c *gin.Context) {
 		return
 	}
 
-	request.WebpageUrl = strings.TrimSpace(request.WebpageUrl)
-	if request.WebpageUrl == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "URL cannot be empty",
-		})
-		return
-	}
 	var isValidURL = false
 
 	request.WebpageUrl, isValidURL = validaters.IsValidURL(request.WebpageUrl)

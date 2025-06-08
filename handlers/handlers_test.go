@@ -50,7 +50,7 @@ func TestWebPageAnalyzerHandler_EmptyURL(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	resp := decodeJSONResponse(t, w.Body)
-	assert.Equal(t, "URL cannot be empty", resp["error"])
+	assert.Equal(t, "Invalid URL format", resp["error"])
 }
 
 func TestWebPageAnalyzerHandler_InvalidJSON(t *testing.T) {

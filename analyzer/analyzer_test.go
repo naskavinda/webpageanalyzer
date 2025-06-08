@@ -89,6 +89,21 @@ func TestAnalyze_ShouldGiveValidHTMLVersion(t *testing.T) {
 	assert.Equal(t, "HTML5", analyze.HTMLVersion)
 }
 
+func TestAnalyze_ShouldReturnErrorOnHTTPFailure(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	pageUrl := "https://example.com/test-page"
+
+	mockError := http.ErrHandlerTimeout
+	cleanUp := setupMockHTTP(nil, mockError)
+	defer cleanUp()
+
+	_, err := Analyze(pageUrl)
+
+	assert.Error(t, err)
+	assert.Equal(t, "failed to fetch the webpage: http: Handler timeout", err.Error())
+}
+
 func TestDetectHTMLVersion(t *testing.T) {
 	tests := []struct {
 		name     string

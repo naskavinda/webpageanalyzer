@@ -45,7 +45,19 @@ func Analyze(pageUrl string) (PageAnalysisResponse, error) {
 
 	result.Title = doc.Find("title").Text()
 
+	getHeadingCount(doc, result)
+
 	return result, nil
+}
+
+func getHeadingCount(doc *goquery.Document, result PageAnalysisResponse) {
+	for i := 0; i < 7; i++ {
+		selector := fmt.Sprintf("h%d", i)
+		count := doc.Find(selector).Length()
+		if count > 0 {
+			result.HeadingCounts[selector] = count
+		}
+	}
 }
 
 func detectHTMLVersion(doc *goquery.Document) string {

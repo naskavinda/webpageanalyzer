@@ -104,6 +104,42 @@ func TestAnalyze_ShouldReturnErrorOnHTTPFailure(t *testing.T) {
 	assert.Equal(t, "failed to fetch the webpage: http: Handler timeout", err.Error())
 }
 
+func TestAnalyze_ShouldReturnSuccessResponse_WithHeading(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	pageUrl := "https://example.com/test-page"
+
+	response := newHTTPResponse(validHTMLContentWithHeaders, http.StatusOK)
+	cleanUp := setupMockHTTP(response, nil)
+	defer cleanUp()
+
+	analyze, err := Analyze(pageUrl)
+
+	assert.NoError(t, err)
+	assert.Equal(t, pageUrl, analyze.URL)
+	assert.Equal(t, "HTML5", analyze.HTMLVersion)
+	assert.Equal(t, "Example Page with Various Links", analyze.Title)
+	assert.Equal(t, 1, analyze.HeadingCounts["h1"])
+	assert.Equal(t, 4, analyze.HeadingCounts["h2"])
+}
+func TestAnalyze_ShouldReturnSuccessResponse_WithoutHeading(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	pageUrl := "https://example.com/test-page"
+
+	response := newHTTPResponse(validHTMLContentWithoutHeaders, http.StatusOK)
+	cleanUp := setupMockHTTP(response, nil)
+	defer cleanUp()
+
+	analyze, err := Analyze(pageUrl)
+
+	assert.NoError(t, err)
+	assert.Equal(t, pageUrl, analyze.URL)
+	assert.Equal(t, "HTML5", analyze.HTMLVersion)
+	assert.Equal(t, "Page Without Headers", analyze.Title)
+	assert.Equal(t, 0, len(analyze.HeadingCounts))
+}
+
 func TestDetectHTMLVersion(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -179,3 +215,75 @@ func setupMockHTTP(mockResponse *http.Response, mockError error) func() {
 		HTTPGet = originalHTTPGet
 	}
 }
+
+const validHTMLContentWithHeaders = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Example Page with Various Links</title>
+</head>
+<body>
+    <a id="top"></a>
+    <h1>Welcome to the Example Page</h1>
+
+    <nav>
+        <h2>Navigation</h2>
+        <ul>
+            <li><a href="#section1">Go to Section 1</a></li>
+            <li><a href="#section2">Go to Section 2</a></li>
+            <li><a href="https://www.example.com" target="_blank" rel="noopener noreferrer">Visit Example.com (external)</a></li>
+            <li><a>Inaccessible Link (no href)</a></li>
+        </ul>
+    </nav>
+
+    <section id="section1">
+        <h2>Section 1</h2>
+        <p>This is the first section. You can <a href="#section2">jump to Section 2</a> or <a href="#top">go back to the top</a>.</p>
+    </section>
+
+    <section id="section2">
+        <h2>Section 2</h2>
+        <p>This is the second section. Here is an <a href="https://www.openai.com" target="_blank" rel="noopener noreferrer">external link to OpenAI</a>.</p>
+    </section>
+
+    <footer>
+        <h2>Footer</h2>
+        <p>Return to <a href="#top">top of page</a>.</p>
+    </footer>
+</body>
+</html>`
+
+const validHTMLContentWithoutHeaders = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page Without Headers</title>
+</head>
+<body>
+    <a id="top"></a>
+
+    <nav>
+        <ul>
+            <li><a href="#section1">Go to Section 1</a></li>
+            <li><a href="#section2">Go to Section 2</a></li>
+            <li><a href="https://www.example.com" target="_blank" rel="noopener noreferrer">Visit Example.com (external)</a></li>
+            <li><a>Inaccessible Link (no href)</a></li>
+        </ul>
+    </nav>
+
+    <section id="section1">
+        <p>This is the first section. You can <a href="#section2">jump to Section 2</a> or <a href="#top">go back to the top</a>.</p>
+    </section>
+
+    <section id="section2">
+        <p>This is the second section. Here is an <a href="https://www.openai.com" target="_blank" rel="noopener noreferrer">external link to OpenAI</a>.</p>
+    </section>
+
+    <footer>
+        <p>Return to <a href="#top">top of page</a>.</p>
+    </footer>
+</body>
+</html>
+`

@@ -1,0 +1,50 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of `go build`
+*.out
+
+# Test binary
+*.test
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories (not needed if you're using Go modules)
+vendor/
+
+# GoLand IDE project files
+.idea/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Coverage & profiling
+coverage.out
+*.cov
+profile.cov
+cpu.prof
+mem.prof
+
+# Build artifacts
+bin/
+dist/
+
+# Local env files
+.env
+.env.*

@@ -43,6 +43,8 @@ func Analyze(pageUrl string) (PageAnalysisResponse, error) {
 
 	result.HTMLVersion = detectHTMLVersion(doc)
 
+	result.Title = doc.Find("title").Text()
+
 	return result, nil
 }
 

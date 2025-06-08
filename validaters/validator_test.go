@@ -6,25 +6,29 @@ import (
 )
 
 func TestIsValidURL_URLEmpty(c *testing.T) {
-	_, isValid := IsValidURL(" ")
+	uri := " "
+	isValid := IsValidURL(&uri)
 
 	assert.Equal(c, isValid, false)
 }
 
 func TestIsValidURL_URLSchemaEmpty(c *testing.T) {
-	_, isValid := IsValidURL("example.com")
+	uri := "example.com"
+	isValid := IsValidURL(&uri)
 
 	assert.Equal(c, isValid, false)
 }
 
 func TestIsValidURL_URLHTTPValid(c *testing.T) {
-	_, isValid := IsValidURL("http://example.com")
+	uri := "http://example.com"
+	isValid := IsValidURL(&uri)
 
 	assert.Equal(c, isValid, true)
 }
 
 func TestIsValidURL_URLHTTPSValid(c *testing.T) {
-	_, isValid := IsValidURL("https://example.com")
+	uri := "https://example.com"
+	isValid := IsValidURL(&uri)
 
 	assert.Equal(c, isValid, true)
 }

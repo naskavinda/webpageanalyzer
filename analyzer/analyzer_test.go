@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -122,6 +123,7 @@ func TestAnalyze_ShouldReturnSuccessResponse_WithHeading(t *testing.T) {
 	assert.Equal(t, 1, analyze.HeadingCounts["h1"])
 	assert.Equal(t, 4, analyze.HeadingCounts["h2"])
 }
+
 func TestAnalyze_ShouldReturnSuccessResponse_WithoutHeading(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -192,6 +194,29 @@ func isHtmlVersionCorrect(t *testing.T, htmlContent string, expectedVersion stri
 
 	version := detectHTMLVersion(doc)
 	assert.Equal(t, expectedVersion, version)
+}
+
+func TestLinksAnalyzer_ShouldReturnInternalAndExternalLinkCount(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	pageUrl := "https://example.com/test-page"
+
+	parsedURL, err := url.Parse(pageUrl)
+	assert.NoError(t, err)
+
+	response := newHTTPResponse(validHTMLContentWithHeaders, http.StatusOK)
+	cleanUp := setupMockHTTP(response, nil)
+	defer cleanUp()
+
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(validHTMLContentWithHeaders))
+	assert.NoError(t, err)
+
+	internalCount, externalCount, _ := linksAnalyzer(doc, parsedURL)
+
+	assert.Equal(t, 5, internalCount) // 2 internal links
+	assert.Equal(t, 2, externalCount) // 2 external links
+	//assert.Equal(t, 1, inaccessibleCount) // 1 link without href
 }
 
 func mockHTTPGetSuccess() *http.Response {

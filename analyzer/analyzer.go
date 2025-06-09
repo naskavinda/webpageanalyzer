@@ -6,12 +6,18 @@ import (
 	. "github.com/naskavinda/webpageanalyzer/models"
 	"github.com/naskavinda/webpageanalyzer/validaters"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
 var HTTPGet = http.Get
 
 func Analyze(pageUrl string) (PageAnalysisResponse, error) {
+
+	parsedURL, err := url.Parse(pageUrl)
+	if err != nil {
+		return PageAnalysisResponse{}, fmt.Errorf("invalid URL: %v", err)
+	}
 
 	var isValidURL = false
 
@@ -47,7 +53,48 @@ func Analyze(pageUrl string) (PageAnalysisResponse, error) {
 
 	getHeadingCount(doc, result)
 
+	internalCount, externalCount, inaccessibleCount := linksAnalyzer(doc, parsedURL)
+
+	result.InternalLinks = internalCount
+	result.ExternalLinks = externalCount
+	result.InaccessibleLinks = inaccessibleCount
+
 	return result, nil
+}
+
+func linksAnalyzer(doc *goquery.Document, baseUrl *url.URL) (int, int, int) {
+
+	var internalCount, externalCount, inaccessibleCount int
+
+	links := doc.Find("a[href]")
+
+	links.Each(func(i int, s *goquery.Selection) {
+		href, exists := s.Attr("href")
+
+		if !exists || href == "" || href == "#" {
+			return
+		}
+
+		linkUrl, err := url.Parse(href)
+
+		if err != nil {
+			inaccessibleCount++
+			return
+		}
+
+		if !linkUrl.IsAbs() {
+			linkUrl = baseUrl.ResolveReference(linkUrl)
+		}
+
+		if linkUrl.Host == baseUrl.Host {
+			internalCount++
+		} else {
+			externalCount++
+		}
+
+	})
+
+	return internalCount, externalCount, inaccessibleCount
 }
 
 func getHeadingCount(doc *goquery.Document, result PageAnalysisResponse) {

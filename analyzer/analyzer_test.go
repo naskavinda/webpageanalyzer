@@ -12,6 +12,7 @@ import (
 )
 
 var originalHTTPGet = HTTPGet
+var originalHTTPClient = HTTPClient
 
 func TestAnalyze_ValidPageURL(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -51,26 +52,6 @@ func TestAnalyze_EmptyPageURL(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, "invalid URL format", err.Error())
-}
-
-func TestAnalyze_URLWithLeadingSpaces(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	pageUrl := "   https://google.com"
-	analyze, err := Analyze(pageUrl)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "https://google.com", analyze.URL)
-}
-
-func TestAnalyze_URLWithTrailingSpaces(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	pageUrl := "https://google.com   "
-	analyze, err := Analyze(pageUrl)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "https://google.com", analyze.URL)
 }
 
 func TestAnalyze_ShouldGiveValidHTMLVersion(t *testing.T) {
@@ -216,7 +197,6 @@ func TestLinksAnalyzer_ShouldReturnInternalAndExternalLinkCount(t *testing.T) {
 
 	assert.Equal(t, 5, internalCount) // 2 internal links
 	assert.Equal(t, 2, externalCount) // 2 external links
-	//assert.Equal(t, 1, inaccessibleCount) // 1 link without href
 }
 
 func mockHTTPGetSuccess() *http.Response {

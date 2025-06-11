@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 var HTTPGet = http.Get
+var HTTPClient = http.Client{}
 
 func Analyze(pageUrl string) (PageAnalysisResponse, error) {
 
@@ -65,6 +67,8 @@ func Analyze(pageUrl string) (PageAnalysisResponse, error) {
 func linksAnalyzer(doc *goquery.Document, baseUrl *url.URL) (int, int, int) {
 
 	var internalCount, externalCount, inaccessibleCount int
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 
 	links := doc.Find("a[href]")
 
@@ -78,7 +82,9 @@ func linksAnalyzer(doc *goquery.Document, baseUrl *url.URL) (int, int, int) {
 		linkUrl, err := url.Parse(href)
 
 		if err != nil {
+			mu.Lock()
 			inaccessibleCount++
+			mu.Unlock()
 			return
 		}
 
@@ -87,14 +93,40 @@ func linksAnalyzer(doc *goquery.Document, baseUrl *url.URL) (int, int, int) {
 		}
 
 		if linkUrl.Host == baseUrl.Host {
+			mu.Lock()
 			internalCount++
+			mu.Unlock()
 		} else {
+			mu.Lock()
 			externalCount++
+			mu.Unlock()
+			go func(link string) {
+				wg.Add(1)
+				defer wg.Done()
+
+				if !isLinkAccessible(link) {
+					mu.Lock()
+					inaccessibleCount++
+					mu.Unlock()
+				}
+
+			}(linkUrl.String())
 		}
 
 	})
-
+	wg.Wait()
 	return internalCount, externalCount, inaccessibleCount
+}
+
+func isLinkAccessible(link string) bool {
+	resp, err := HTTPClient.Head(link)
+	if err != nil || resp.StatusCode >= 400 {
+		return false
+	}
+	if resp != nil {
+		resp.Body.Close()
+	}
+	return true
 }
 
 func getHeadingCount(doc *goquery.Document, result PageAnalysisResponse) {

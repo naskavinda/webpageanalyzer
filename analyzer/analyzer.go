@@ -61,6 +61,8 @@ func Analyze(pageUrl string) (PageAnalysisResponse, error) {
 	result.ExternalLinks = externalCount
 	result.InaccessibleLinks = inaccessibleCount
 
+	result.HasLoginForm = detectLoginForm(doc)
+
 	return result, nil
 }
 
@@ -162,4 +164,33 @@ func detectHTMLVersion(doc *goquery.Document) string {
 	}
 
 	return "Unknown"
+}
+
+func detectLoginForm(doc *goquery.Document) bool {
+
+	loginTexts := []string{"login", "log in", "sign in", "sign up"}
+	hasLoginText := false
+
+	formHTML, _ := doc.Html()
+	formText := strings.ToLower(formHTML)
+	hasPasswordField := strings.Contains(formText, "type='password'") || strings.Contains(formText, "type=\"password\"")
+
+	for _, text := range loginTexts {
+		if strings.Contains(formText, text) {
+			hasLoginText = true
+			break
+		}
+	}
+
+	action, _ := doc.Attr("action")
+	id, _ := doc.Attr("id")
+
+	for _, text := range loginTexts {
+		if strings.Contains(strings.ToLower(action), text) || strings.Contains(strings.ToLower(id), text) {
+			hasLoginText = true
+			break
+		}
+	}
+
+	return hasPasswordField || hasLoginText
 }

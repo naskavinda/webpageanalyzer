@@ -199,6 +199,72 @@ func TestLinksAnalyzer_ShouldReturnInternalAndExternalLinkCount(t *testing.T) {
 	assert.Equal(t, 2, externalCount) // 2 external links
 }
 
+func TestDetectLoginForm(t *testing.T) {
+	tests := []struct {
+		name     string
+		html     string
+		expected bool
+	}{
+		{
+			name: "Form with password field and login text",
+			html: `<html><body>
+				<form>
+					<input type="text" name="username" />
+					<input type="password" name="password" />
+					<button>Login</button>
+				</form>
+			</body></html>`,
+			expected: true,
+		},
+		{
+			name: "Form with login text only",
+			html: `<html><body>
+				<form>
+					<p>Please sign in to continue</p>
+				</form>
+			</body></html>`,
+			expected: true,
+		},
+		{
+			name: "Form with password field only",
+			html: `<html><body>
+				<form>
+					<input type="password" />
+				</form>
+			</body></html>`,
+			expected: true,
+		},
+		{
+			name: "Form with login-related id",
+			html: `<html><body>
+				<form id="loginForm">
+					<input type="text" />
+				</form>
+			</body></html>`,
+			expected: true,
+		},
+		{
+			name: "Form with unrelated content",
+			html: `<html><body>
+				<form>
+					<input type="text" name="search" />
+				</form>
+			</body></html>`,
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			doc, err := goquery.NewDocumentFromReader(strings.NewReader(tt.html))
+			assert.NoError(t, err)
+
+			result := detectLoginForm(doc)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func mockHTTPGetSuccess() *http.Response {
 	return newHTTPResponse("<!DOCTYPE html><body>Test Page</body></html>", http.StatusOK)
 }

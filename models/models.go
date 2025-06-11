@@ -13,5 +13,4 @@ type PageAnalysisResponse struct {
 	ExternalLinks     int
 	InaccessibleLinks int
 	HasLoginForm      bool
-	Error             string
 }

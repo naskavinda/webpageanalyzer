@@ -87,7 +87,7 @@ func TestAnalyze_ShouldReturnErrorOnHTTPFailure(t *testing.T) {
 	_, err := d.Analyze(pageUrl)
 
 	assert.Error(t, err)
-	assert.Equal(t, "failed to fetch the webpage: http: Handler timeout", err.Error())
+	assert.Equal(t, "failed to fetch the webpage", err.Error())
 }
 
 func TestAnalyze_ShouldReturnSuccessResponse_WithHeading(t *testing.T) {

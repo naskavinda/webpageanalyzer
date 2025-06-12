@@ -28,7 +28,8 @@ func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnaly
 
 	resp, err := HTTPGet(pageUrl)
 	if err != nil {
-		return PageAnalysisResponse{}, fmt.Errorf("failed to fetch the webpage: %v", err.Error())
+		fmt.Println(err)
+		return PageAnalysisResponse{}, fmt.Errorf("failed to fetch the webpage")
 	}
 	defer resp.Body.Close()
 
@@ -38,7 +39,8 @@ func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnaly
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return PageAnalysisResponse{}, fmt.Errorf("failed to read the webpage content: %v", err.Error())
+		fmt.Println(err)
+		return PageAnalysisResponse{}, fmt.Errorf("failed to read the webpage content")
 	}
 
 	result := PageAnalysisResponse{
@@ -71,7 +73,8 @@ func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnaly
 func getUrl(pageUrl string, err error) (*url.URL, error) {
 	parsedURL, err := url.Parse(pageUrl)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse URL: %v", err.Error())
+		fmt.Println(err)
+		return nil, fmt.Errorf("given URL is invalid")
 	}
 	return parsedURL, nil
 }

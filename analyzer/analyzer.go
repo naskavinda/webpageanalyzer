@@ -18,11 +18,6 @@ type DefaultAnalyzerService struct{}
 
 func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnalysisResponse, error) {
 
-	parsedURL, err := url.Parse(pageUrl)
-	if err != nil {
-		return PageAnalysisResponse{}, fmt.Errorf("invalid URL: %v", err)
-	}
-
 	var isValidURL = false
 
 	isValidURL = validaters.IsValidURL(&pageUrl)
@@ -57,6 +52,11 @@ func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnaly
 
 	getHeadingCount(doc, result)
 
+	parsedURL, err := getUrl(pageUrl, err)
+	if err != nil {
+		return PageAnalysisResponse{}, err
+	}
+
 	internalCount, externalCount, inaccessibleCount := linksAnalyzer(doc, parsedURL)
 
 	result.InternalLinks = internalCount
@@ -66,6 +66,14 @@ func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnaly
 	result.HasLoginForm = detectLoginForm(doc)
 
 	return result, nil
+}
+
+func getUrl(pageUrl string, err error) (*url.URL, error) {
+	parsedURL, err := url.Parse(pageUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse URL: %v", err.Error())
+	}
+	return parsedURL, nil
 }
 
 func linksAnalyzer(doc *goquery.Document, baseUrl *url.URL) (int, int, int) {

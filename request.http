@@ -14,7 +14,7 @@ POST http://localhost:8080/analyzer
 Content-Type: application/json
 
 {
-"webpageUrl": "https://facebook.com"
+"webpageUrl": "https://medium.com/@maciek.pilot2/golang-project-structure-b88327220d73"
 }
 
 ###

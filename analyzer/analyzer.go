@@ -14,7 +14,9 @@ import (
 var HTTPGet = http.Get
 var HTTPClient = http.Client{}
 
-func Analyze(pageUrl string) (PageAnalysisResponse, error) {
+type DefaultAnalyzerService struct{}
+
+func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnalysisResponse, error) {
 
 	parsedURL, err := url.Parse(pageUrl)
 	if err != nil {

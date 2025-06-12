@@ -7,7 +7,11 @@ import (
 	"net/http"
 )
 
-func WebPageAnalyzerHandler(c *gin.Context) {
+type WebPageAnalyzer struct {
+	Service analyzer.AnalyzerService
+}
+
+func (webPageAnalyzer *WebPageAnalyzer) WebPageAnalyzerHandler(c *gin.Context) {
 	var request PageAnalysisRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -16,7 +20,7 @@ func WebPageAnalyzerHandler(c *gin.Context) {
 		})
 		return
 	}
-	response, err := analyzer.Analyze(request.WebpageUrl)
+	response, err := webPageAnalyzer.Service.Analyze(request.WebpageUrl)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),

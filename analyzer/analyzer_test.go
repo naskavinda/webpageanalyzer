@@ -18,7 +18,8 @@ func TestAnalyze_ValidPageURL(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	pageUrl := "https://google.com"
-	analyze, err := Analyze(pageUrl)
+	d := DefaultAnalyzerService{}
+	analyze, err := d.Analyze(pageUrl)
 
 	assert.NoError(t, err)
 	assert.Equal(t, pageUrl, analyze.URL)
@@ -26,9 +27,9 @@ func TestAnalyze_ValidPageURL(t *testing.T) {
 
 func TestAnalyze_InvalidPageURL(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-
 	pageUrl := "invalid-url"
-	_, err := Analyze(pageUrl)
+	d := DefaultAnalyzerService{}
+	_, err := d.Analyze(pageUrl)
 
 	assert.Error(t, err)
 	assert.Equal(t, "invalid URL format", err.Error())
@@ -38,7 +39,8 @@ func TestAnalyze_PageNotFound(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	pageUrl := "https://example.com/404"
-	_, err := Analyze(pageUrl)
+	d := DefaultAnalyzerService{}
+	_, err := d.Analyze(pageUrl)
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to fetch the webpage, status code: 404")
@@ -48,7 +50,8 @@ func TestAnalyze_EmptyPageURL(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	pageUrl := ""
-	_, err := Analyze(pageUrl)
+	d := DefaultAnalyzerService{}
+	_, err := d.Analyze(pageUrl)
 
 	assert.Error(t, err)
 	assert.Equal(t, "invalid URL format", err.Error())
@@ -61,8 +64,8 @@ func TestAnalyze_ShouldGiveValidHTMLVersion(t *testing.T) {
 
 	response := mockHTTPGetSuccess()
 	cleanUp := setupMockHTTP(response, nil)
-
-	analyze, err := Analyze(pageUrl)
+	d := DefaultAnalyzerService{}
+	analyze, err := d.Analyze(pageUrl)
 
 	defer cleanUp()
 
@@ -80,7 +83,8 @@ func TestAnalyze_ShouldReturnErrorOnHTTPFailure(t *testing.T) {
 	cleanUp := setupMockHTTP(nil, mockError)
 	defer cleanUp()
 
-	_, err := Analyze(pageUrl)
+	d := DefaultAnalyzerService{}
+	_, err := d.Analyze(pageUrl)
 
 	assert.Error(t, err)
 	assert.Equal(t, "failed to fetch the webpage: http: Handler timeout", err.Error())
@@ -95,7 +99,8 @@ func TestAnalyze_ShouldReturnSuccessResponse_WithHeading(t *testing.T) {
 	cleanUp := setupMockHTTP(response, nil)
 	defer cleanUp()
 
-	analyze, err := Analyze(pageUrl)
+	d := DefaultAnalyzerService{}
+	analyze, err := d.Analyze(pageUrl)
 
 	assert.NoError(t, err)
 	assert.Equal(t, pageUrl, analyze.URL)
@@ -114,7 +119,8 @@ func TestAnalyze_ShouldReturnSuccessResponse_WithoutHeading(t *testing.T) {
 	cleanUp := setupMockHTTP(response, nil)
 	defer cleanUp()
 
-	analyze, err := Analyze(pageUrl)
+	d := DefaultAnalyzerService{}
+	analyze, err := d.Analyze(pageUrl)
 
 	assert.NoError(t, err)
 	assert.Equal(t, pageUrl, analyze.URL)

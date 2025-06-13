@@ -1,4 +1,4 @@
-package models
+package model
 
 type PageAnalysisRequest struct {
 	WebpageUrl string `json:"webpageUrl" binding:"required"`

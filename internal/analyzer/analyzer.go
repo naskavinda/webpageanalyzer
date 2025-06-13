@@ -3,8 +3,8 @@ package analyzer
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	. "github.com/naskavinda/webpageanalyzer/models"
-	"github.com/naskavinda/webpageanalyzer/validaters"
+	. "github.com/naskavinda/webpageanalyzer/internal/model"
+	"github.com/naskavinda/webpageanalyzer/internal/validator"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,7 +20,7 @@ func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnaly
 
 	var isValidURL = false
 
-	isValidURL = validaters.IsValidURL(&pageUrl)
+	isValidURL = validator.IsValidURL(&pageUrl)
 
 	if !isValidURL {
 		return PageAnalysisResponse{}, fmt.Errorf("invalid URL format")

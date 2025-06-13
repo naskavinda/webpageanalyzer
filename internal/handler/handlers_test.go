@@ -1,11 +1,11 @@
-package handlers
+package handler
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/naskavinda/webpageanalyzer/models"
+	"github.com/naskavinda/webpageanalyzer/internal/model"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -21,8 +21,8 @@ func TestWebPageAnalyzerHandler_InvalidJSON(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = req
 	mockService := MockAnalyzerService{
-		AnalyzeFunc: func(url string) (models.PageAnalysisResponse, error) {
-			return models.PageAnalysisResponse{}, fmt.Errorf("Invalid request format or missing webpageUrl")
+		AnalyzeFunc: func(url string) (model.PageAnalysisResponse, error) {
+			return model.PageAnalysisResponse{}, fmt.Errorf("Invalid request format or missing webpageUrl")
 		},
 	}
 	var webPageAnalyzer = WebPageAnalyzer{Service: mockService}
@@ -43,8 +43,8 @@ func TestWebPageAnalyzerHandler_InvalidWebPageURL(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = req
 	mockService := MockAnalyzerService{
-		AnalyzeFunc: func(url string) (models.PageAnalysisResponse, error) {
-			return models.PageAnalysisResponse{}, fmt.Errorf("invalid URL format")
+		AnalyzeFunc: func(url string) (model.PageAnalysisResponse, error) {
+			return model.PageAnalysisResponse{}, fmt.Errorf("invalid URL format")
 		},
 	}
 	var webPageAnalyzer = WebPageAnalyzer{Service: mockService}
@@ -65,8 +65,8 @@ func TestWebPageAnalyzerHandler_validJSON(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = req
 	mockService := MockAnalyzerService{
-		AnalyzeFunc: func(url string) (models.PageAnalysisResponse, error) {
-			return models.PageAnalysisResponse{
+		AnalyzeFunc: func(url string) (model.PageAnalysisResponse, error) {
+			return model.PageAnalysisResponse{
 				URL:         url,
 				HTMLVersion: "HTML5",
 				Title:       "Sample Title",
@@ -82,9 +82,9 @@ func TestWebPageAnalyzerHandler_validJSON(t *testing.T) {
 	assert.Equal(t, "https://example.com", resp.URL)
 }
 
-func decodePageAnalysisResponse(t *testing.T, body *bytes.Buffer) models.PageAnalysisResponse {
+func decodePageAnalysisResponse(t *testing.T, body *bytes.Buffer) model.PageAnalysisResponse {
 	t.Helper()
-	var data models.PageAnalysisResponse
+	var data model.PageAnalysisResponse
 	err := json.Unmarshal(body.Bytes(), &data)
 	if err != nil {
 		t.Fatalf("Failed to decode JSON response: %v", err)
@@ -109,12 +109,12 @@ func newTestRequest(jsonBody string) *http.Request {
 }
 
 type MockAnalyzerService struct {
-	AnalyzeFunc func(url string) (models.PageAnalysisResponse, error)
+	AnalyzeFunc func(url string) (model.PageAnalysisResponse, error)
 }
 
-func (s MockAnalyzerService) Analyze(url string) (models.PageAnalysisResponse, error) {
+func (s MockAnalyzerService) Analyze(url string) (model.PageAnalysisResponse, error) {
 	if s.AnalyzeFunc != nil {
 		return s.AnalyzeFunc(url)
 	}
-	return models.PageAnalysisResponse{}, nil
+	return model.PageAnalysisResponse{}, nil
 }

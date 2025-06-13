@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/naskavinda/webpageanalyzer/analyzer"
-	. "github.com/naskavinda/webpageanalyzer/handlers"
+	"github.com/naskavinda/webpageanalyzer/internal/analyzer"
+	. "github.com/naskavinda/webpageanalyzer/internal/handler"
 	"time"
 )
 

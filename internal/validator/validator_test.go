@@ -1,4 +1,4 @@
-package validaters
+package validator
 
 import (
 	"github.com/gin-gonic/gin"

@@ -6,9 +6,11 @@ COPY go.mod go.sum ./
 
 RUN go mod download
 
-COPY . .
+COPY . ./
 
-RUN go build -o server .
+WORKDIR /app/cmd/server
+
+RUN go build -o /app/server .
 
 FROM alpine:latest
 

@@ -1,9 +1,9 @@
-package handlers
+package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/naskavinda/webpageanalyzer/analyzer"
-	. "github.com/naskavinda/webpageanalyzer/models"
+	"github.com/naskavinda/webpageanalyzer/internal/analyzer"
+	. "github.com/naskavinda/webpageanalyzer/internal/model"
 	"net/http"
 )
 

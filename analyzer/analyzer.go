@@ -112,11 +112,12 @@ func linksAnalyzer(doc *goquery.Document, baseUrl *url.URL) (int, int, int) {
 			internalCount++
 			mu.Unlock()
 		} else {
+			wg.Add(1)
 			mu.Lock()
 			externalCount++
 			mu.Unlock()
 			go func(link string) {
-				wg.Add(1)
+
 				defer wg.Done()
 
 				if !isLinkAccessible(link) {

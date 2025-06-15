@@ -10,7 +10,7 @@ import (
 )
 
 type WebPageAnalyzer struct {
-	Service analyzer.AnalyzerService
+	Service analyzer.Service
 }
 
 func (webPageAnalyzer *WebPageAnalyzer) WebPageAnalyzerHandler(c *gin.Context) {

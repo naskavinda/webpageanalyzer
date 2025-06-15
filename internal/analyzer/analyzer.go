@@ -5,6 +5,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	. "github.com/naskavinda/webpageanalyzer/internal/model"
 	"github.com/naskavinda/webpageanalyzer/internal/validator"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,29 +18,31 @@ var HTTPClient = http.Client{}
 type DefaultAnalyzerService struct{}
 
 func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnalysisResponse, error) {
-
+	log.Printf("[DEBUG] Starting analysis for URL: %s", pageUrl)
 	var isValidURL = false
 
 	isValidURL = validator.IsValidURL(&pageUrl)
 
 	if !isValidURL {
+		log.Printf("[ERROR] Invalid URL format: %s", pageUrl)
 		return PageAnalysisResponse{}, fmt.Errorf("invalid URL format")
 	}
 
 	resp, err := HTTPGet(pageUrl)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("[ERROR] Failed to fetch the webpage: %v", err)
 		return PageAnalysisResponse{}, fmt.Errorf("failed to fetch the webpage")
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] Non-200 status code for %s: %v", pageUrl, resp.Status)
 		return PageAnalysisResponse{}, fmt.Errorf("failed to fetch the webpage, status code: %v", resp.Status)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("[ERROR] Failed to read the webpage content for %s: %v", pageUrl, err)
 		return PageAnalysisResponse{}, fmt.Errorf("failed to read the webpage content")
 	}
 
@@ -49,13 +52,16 @@ func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnaly
 	}
 
 	result.HTMLVersion = detectHTMLVersion(doc)
+	log.Printf("[DEBUG] Detected HTML version for %s: %s", pageUrl, result.HTMLVersion)
 
 	result.Title = doc.Find("title").Text()
+	log.Printf("[DEBUG] Page title for %s: %s", pageUrl, result.Title)
 
 	getHeadingCount(doc, result)
 
 	parsedURL, err := getUrl(pageUrl, err)
 	if err != nil {
+		log.Printf("[ERROR] Failed to parse URL %s: %v", pageUrl, err)
 		return PageAnalysisResponse{}, err
 	}
 
@@ -67,13 +73,14 @@ func (defaultAnalyzer DefaultAnalyzerService) Analyze(pageUrl string) (PageAnaly
 
 	result.HasLoginForm = detectLoginForm(doc)
 
+	log.Printf("[INFO] Analysis complete for %s", pageUrl)
 	return result, nil
 }
 
 func getUrl(pageUrl string, err error) (*url.URL, error) {
 	parsedURL, err := url.Parse(pageUrl)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("[ERROR] url.Parse failed for %s: %v", pageUrl, err)
 		return nil, fmt.Errorf("given URL is invalid")
 	}
 	return parsedURL, nil
@@ -97,6 +104,7 @@ func linksAnalyzer(doc *goquery.Document, baseUrl *url.URL) (int, int, int) {
 		linkUrl, err := url.Parse(href)
 
 		if err != nil {
+			log.Printf("[ERROR] Failed to parse link href: %s, error: %v", href, err)
 			mu.Lock()
 			inaccessibleCount++
 			mu.Unlock()
@@ -121,6 +129,7 @@ func linksAnalyzer(doc *goquery.Document, baseUrl *url.URL) (int, int, int) {
 				defer wg.Done()
 
 				if !isLinkAccessible(link) {
+					log.Printf("[DEBUG] Link inaccessible: %s", link)
 					mu.Lock()
 					inaccessibleCount++
 					mu.Unlock()
@@ -137,6 +146,7 @@ func linksAnalyzer(doc *goquery.Document, baseUrl *url.URL) (int, int, int) {
 func isLinkAccessible(link string) bool {
 	resp, err := HTTPClient.Head(link)
 	if err != nil || resp.StatusCode >= 400 {
+		log.Printf("[DEBUG] Link not accessible: %s, err: %v, status: %v", link, err, resp)
 		return false
 	}
 	if resp != nil {

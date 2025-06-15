@@ -44,12 +44,17 @@
 /* Modern, clean, responsive styling for the Webpage Analyzer app */
 .App {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   padding: 40px 16px;
+}
+
+body {
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+  min-height: 100vh;
+  margin: 0;
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
 }
 

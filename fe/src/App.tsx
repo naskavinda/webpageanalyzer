@@ -16,6 +16,15 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const isValidUrl = (input: string) => {
+    try {
+      new URL(input)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -53,7 +62,7 @@ function App() {
           onChange={e => setUrl(e.target.value)}
           style={{ width: '350px', marginRight: 8 }}
         />
-        <button type="submit" disabled={loading || !url}>
+        <button type="submit" disabled={loading || !isValidUrl(url)}>
           {loading ? 'Analyzing...' : 'Analyze'}
         </button>
       </form>

@@ -7,13 +7,18 @@
 go build -o webpageanalyzer ./cmd/server
 ```
 
-### 2. **Run Locally**
+### 2. Run Tests
+```sh
+go test -v ./...
+```
+
+### 3. **Run Locally**
 ```sh
 go run ./cmd/server/main.go
 ```
 - The server will start on `localhost:8080`.
 
-### 3. **Run React Frontend (in `fe` folder)**
+### 4. **Run React Frontend (in `fe` folder)**
 ```sh
 cd fe
 npm install
@@ -21,7 +26,7 @@ npm run dev
 ```
 - The frontend will start on `http://localhost:5173` by default.
 
-### 4. **Run with Docker**
+### 5. **Run with Docker**
 Build the backend Docker image:
 ```sh
 docker build -t webpageanalyzer .
@@ -38,7 +43,7 @@ docker build -t webpageanalyzer-frontend .
 docker run -p 5173:80 webpageanalyzer-frontend
 ```
 
-### 5. **Run with Docker Compose (Backend + Frontend)**
+### 6. **Run with Docker Compose (Backend + Frontend)**
 If you have a `docker-compose.yml`:
 ```sh
 docker-compose up --build
